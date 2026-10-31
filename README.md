@@ -1,6 +1,6 @@
 # Recommandation comparée : animés, films et séries
 
-Application web **découplée** de recommandation comparée (SAÉ BUT3 5.Real.01, IUT Villetaneuse).
+Application web **découplée** de recommandation comparée (SAÉ BUT3, IUT Villetaneuse).
 Deux approches de recommandation sont comparées côte à côte : filtrage par contenu et embeddings, avec un dashboard (temps de réponse, complexité, consommation…).
 
 ## Structure
