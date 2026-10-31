@@ -9,7 +9,6 @@ Deux approches de recommandation sont comparées côte à côte : filtrage par c
 |---|---|
 | `backend/` | API Flask JSON : blueprints, services, DAO, ORM SQLAlchemy ([README](backend/README.md)) |
 | `frontend/` | pages HTML/JS + Bootstrap qui appellent l'API en `fetch` ([README](frontend/README.md)) |
-| `docs/` | feuille de route et documents du projet |
 
 ## Lancer le projet
 
