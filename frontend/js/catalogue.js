@@ -13,6 +13,7 @@ async function chargerGenres() {
 async function chargerContenus() {
 	const type = document.getElementById("type").value;
 	const genre = document.getElementById("genre").value;
+	const recherche = document.getElementById("recherche").value.toLowerCase();
 	document.getElementById("erreur").innerHTML = "";
 	try {
 		let contenus;
@@ -25,6 +26,7 @@ async function chargerContenus() {
 		} else {
 			contenus = await api("/catalogue/?limit=1000");
 		}
+		if (recherche) contenus = contenus.filter(c => c.title.toLowerCase().includes(recherche));
 		document.getElementById("compteur").textContent = contenus.length;
 		document.getElementById("liste").innerHTML = contenus.map(carte).join("");
 	} catch (e) {
@@ -56,6 +58,7 @@ function carte(c) {
 
 document.getElementById("type").addEventListener("change", chargerContenus);
 document.getElementById("genre").addEventListener("change", chargerContenus);
+document.getElementById("recherche").addEventListener("input", chargerContenus);
 
 chargerGenres();
 chargerContenus();
