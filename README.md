@@ -57,4 +57,4 @@ la licence couvre uniquement notre code : les données restent soumises aux cond
 
 ## Équipe « Les Lions Conquérants »
 
-CAV Boran · CHOUAT Oussama · LARIBI Younes · LE MESTE Enzo · TABELLOUT Amir Khaled
+CAV Boran · CHOUAT Oussama · JEREMIAS Sherwin · LARIBI Younes · LE MESTE Enzo · TABELLOUT Amir Khaled
