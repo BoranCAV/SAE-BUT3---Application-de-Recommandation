@@ -11,7 +11,7 @@ NB_PAGES_ANILIST = 6  # 50 animés par page
 
 TMDB_URL = "https://api.themoviedb.org/3"
 TMDB_IMG = "https://image.tmdb.org/t/p/w500"
-NB_PAGES_TMDB = 15  # 20 résultats par page
+NB_PAGES_TMDB = 20  # 20 résultats par page
 GENRE_ANIMATION = 16
 
 ANILIST_QUERY = """
@@ -29,8 +29,14 @@ query ($page: Int) {
 }
 """
 
-# genres anilist (anglais) -> mêmes noms que tmdb en français, pour comparer animés et films
+# genres en anglais (anilist, et certains genres de séries tmdb) -> noms français de tmdb
+# pour que animés, films et séries partagent les mêmes genres
 GENRES_FR = {
+	"War": "Guerre",
+	"Politics": "Politique",
+	"Kids": "Enfants",
+	"Reality": "Télé-réalité",
+	"Soap": "Feuilleton",
 	"Adventure": "Aventure",
 	"Comedy": "Comédie",
 	"Drama": "Drame",
@@ -102,8 +108,8 @@ def fetch_tmdb(kind, ctype, api_key):
 			for gid in c["genre_ids"]:
 				if gid in genre_names:
 					# côté séries tmdb regroupe des genres : "Action & Adventure"
-					genres += genre_names[gid].split(" & ")
-			contents.append((c.get("title") or c.get("name"), ctype, year, c["overview"] or None, c["vote_average"], cover, genres))
+					genres += [GENRES_FR.get(g, g) for g in genre_names[gid].split(" & ")]
+			contents.append((c.get("title") or c.get("name"), ctype, year, c["overview"] or None, round(c["vote_average"], 1), cover, genres))
 
 	print(f"[+] {len(contents)} {ctype}s récupérés")
 	return contents
