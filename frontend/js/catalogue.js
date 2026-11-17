@@ -52,6 +52,9 @@ function carte(c) {
 				<p class="small text-secondary mb-2">${esc(c.genres.join(", "))}</p>
 				<p class="small mb-0">${esc(synopsis)}</p>
 			</div>
+			<div class="card-footer bg-transparent border-0">
+				<a href="reco.html?id=${c.id}" class="btn btn-outline-secondary btn-sm">Recommandations</a>
+			</div>
 		</div>
 	</div>`;
 }
