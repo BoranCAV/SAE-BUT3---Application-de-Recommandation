@@ -19,5 +19,10 @@ def recommend(content_id):
 		"content_id": content_id,
 		"method": method,
 		"time_ms": time_ms,
-		"results": [c.to_dict() for c in results]
+		"results": [
+			{**c.to_dict(),
+			 "similarity": getattr(c, "similarity", None),
+			 "shared_genres": getattr(c, "shared_genres", [])}
+			for c in results
+		]
 	})
