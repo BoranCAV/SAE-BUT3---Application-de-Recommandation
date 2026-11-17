@@ -28,8 +28,7 @@
 			</div>
 		</div>
 
-		<div id="fiche" class="mb-4"></div>
-
+		<div id="fiche" class="mb-4"></div>		
 		<div class="row g-3">
 			<div class="col-md-6">
 				<div class="card border-0 shadow-sm h-100">
@@ -67,6 +66,46 @@
 				<tbody id="dashboard"></tbody>
 			</table>
 		</div>
+
+		<div class="mt-5 pt-4 border-top">
+			<div class="d-flex justify-content-between align-items-center mb-4">
+				<h2 class="h4 mb-0">Dashboard de Performance (Benchmark)</h2>
+				<button id="btn-benchmark" class="btn btn-dark">Relancer le Benchmark</button>
+			</div>
+			
+			<div id="benchmark-zone" class="d-none">
+				<div class="row text-center mb-4">
+					<div class="col-md-4">
+						<div class="card bg-success text-white shadow-sm border-0 py-3">
+							<div class="card-body">
+								<h6 class="text-uppercase text-white-50 mb-1">Temps Minimum</h6>
+								<h2 class="display-5 fw-bold mb-0"><span id="bench-min"></span><small class="fs-5"> ms</small></h2>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="card bg-danger text-white shadow-sm border-0 py-3">
+							<div class="card-body">
+								<h6 class="text-uppercase text-white-50 mb-1">Temps Maximum</h6>
+								<h2 class="display-5 fw-bold mb-0"><span id="bench-max"></span><small class="fs-5"> ms</small></h2>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="card bg-primary text-white shadow-sm border-0 py-3">
+							<div class="card-body">
+								<h6 class="text-uppercase text-white-50 mb-1">Temps Moyen</h6>
+								<h2 class="display-5 fw-bold mb-0"><span id="bench-moy"></span><small class="fs-5"> ms</small></h2>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="text-center fs-5 mb-3">
+					Calculé sur un échantillon de 5 requêtes parmi les <strong id="bench-n"></strong> contenus du catalogue.
+				</div>
+			</div>
+		</div>
+
 	</main>
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -75,6 +114,30 @@
 	<script src="js/nav.js"></script>
 	<script src="js/api.js"></script>
 	<script src="js/reco.js"></script>
+
+	<script>
+	document.getElementById('btn-benchmark').addEventListener('click', async () => {
+		const btn = document.getElementById('btn-benchmark');
+		btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Calcul en cours...`;
+		btn.disabled = true;
+		try {
+			const res = await api("/benchmark/");
+			document.getElementById('bench-n').innerText = res.nb_contenus;
+			document.getElementById('bench-min').innerText = res.temps_min;
+			document.getElementById('bench-max').innerText = res.temps_max;
+			document.getElementById('bench-moy').innerText = res.temps_moyen;
+			document.getElementById('benchmark-zone').classList.remove('d-none');
+		} catch (e) {
+			alert(e.message);
+		} finally {
+			btn.innerText = "Relancer le Benchmark";
+			btn.disabled = false;
+		}
+	});
+	</script>
+
+
+
 </body>
 
 </html>
