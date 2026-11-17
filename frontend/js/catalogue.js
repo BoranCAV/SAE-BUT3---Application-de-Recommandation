@@ -1,8 +1,30 @@
 // page catalogue : affiche tous les contenus sous forme de cartes
 
-async function chargerContenus() {
+async function chargerGenres() {
 	try {
-		const contenus = await api("/catalogue/?limit=1000");
+		const genres = await api("/catalogue/genres");
+		document.getElementById("genre").innerHTML += genres.map(g =>
+			`<option value="${esc(g.name)}">${esc(g.name)}</option>`).join("");
+	} catch (e) {
+		showError(e);
+	}
+}
+
+async function chargerContenus() {
+	const type = document.getElementById("type").value;
+	const genre = document.getElementById("genre").value;
+	document.getElementById("erreur").innerHTML = "";
+	try {
+		let contenus;
+		if (type) {
+			contenus = await api("/catalogue/?type=" + type);
+			// l'api ne combine pas type et genre : le genre est filtré ici
+			if (genre) contenus = contenus.filter(c => c.genres.includes(genre));
+		} else if (genre) {
+			contenus = await api("/catalogue/?genre=" + encodeURIComponent(genre));
+		} else {
+			contenus = await api("/catalogue/?limit=1000");
+		}
 		document.getElementById("compteur").textContent = contenus.length;
 		document.getElementById("liste").innerHTML = contenus.map(carte).join("");
 	} catch (e) {
@@ -32,4 +54,8 @@ function carte(c) {
 	</div>`;
 }
 
+document.getElementById("type").addEventListener("change", chargerContenus);
+document.getElementById("genre").addEventListener("change", chargerContenus);
+
+chargerGenres();
 chargerContenus();
