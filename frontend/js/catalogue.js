@@ -1,0 +1,67 @@
+// page catalogue : affiche tous les contenus sous forme de cartes
+
+async function chargerGenres() {
+	try {
+		const genres = await api("/catalogue/genres");
+		document.getElementById("genre").innerHTML += genres.map(g =>
+			`<option value="${esc(g.name)}">${esc(g.name)}</option>`).join("");
+	} catch (e) {
+		showError(e);
+	}
+}
+
+async function chargerContenus() {
+	const type = document.getElementById("type").value;
+	const genre = document.getElementById("genre").value;
+	const recherche = document.getElementById("recherche").value.toLowerCase();
+	document.getElementById("erreur").innerHTML = "";
+	try {
+		let contenus;
+		if (type) {
+			contenus = await api("/catalogue/?type=" + type);
+			// l'api ne combine pas type et genre : le genre est filtré ici
+			if (genre) contenus = contenus.filter(c => c.genres.includes(genre));
+		} else if (genre) {
+			contenus = await api("/catalogue/?genre=" + encodeURIComponent(genre));
+		} else {
+			contenus = await api("/catalogue/?limit=1000");
+		}
+		if (recherche) contenus = contenus.filter(c => c.title.toLowerCase().includes(recherche));
+		document.getElementById("compteur").textContent = contenus.length;
+		document.getElementById("liste").innerHTML = contenus.map(carte).join("");
+	} catch (e) {
+		showError(e);
+	}
+}
+
+function carte(c) {
+	const synopsis = c.synopsis && c.synopsis.length > 150 ? c.synopsis.slice(0, 150) + "..." : c.synopsis;
+	const affiche = c.cover
+		? `<img src="${esc(c.cover)}" class="card-img-top" alt="${esc(c.title)}" style="max-height: 220px; object-fit: cover;">`
+		: `<div class="card-img-top bg-secondary-subtle" style="height: 220px;"></div>`;
+	return `
+	<div class="col-sm-6 col-md-4 col-lg-3">
+		<div class="card border-0 shadow-sm h-100">
+			${affiche}
+			<div class="card-body">
+				<h2 class="h6 mb-1">${esc(c.title)}</h2>
+				<p class="small text-secondary mb-2">
+					<span class="badge text-bg-${TYPE_COLORS[c.type]}">${TYPE_LABELS[c.type]}</span>
+					${c.year ?? "année inconnue"} · ${c.score ?? "-"}/10
+				</p>
+				<p class="small text-secondary mb-2">${esc(c.genres.join(", "))}</p>
+				<p class="small mb-0">${esc(synopsis)}</p>
+			</div>
+			<div class="card-footer bg-transparent border-0">
+				<a href="reco.html?id=${c.id}" class="btn btn-outline-secondary btn-sm">Recommandations</a>
+			</div>
+		</div>
+	</div>`;
+}
+
+document.getElementById("type").addEventListener("change", chargerContenus);
+document.getElementById("genre").addEventListener("change", chargerContenus);
+document.getElementById("recherche").addEventListener("input", chargerContenus);
+
+chargerGenres();
+chargerContenus();
