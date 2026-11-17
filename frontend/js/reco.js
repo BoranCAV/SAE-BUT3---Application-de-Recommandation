@@ -1,5 +1,8 @@
 // page reco : compare les deux méthodes pour un contenu et garde leurs temps de réponse
 
+const METHODES = ["contenu", "embeddings"];
+const temps = { contenu: [], embeddings: [] };
+
 async function chargerContenus() {
 	const select = document.getElementById("contenu");
 	try {
@@ -28,7 +31,11 @@ async function comparer(id) {
 			api("/reco/" + id + "?method=contenu&n=10"),
 			api("/reco/" + id + "?method=embeddings&n=10"),
 		]);
-		recos.forEach(reco => afficherMethode(reco));
+		recos.forEach(reco => {
+			temps[reco.method].push(reco.time_ms);
+			afficherMethode(reco);
+		});
+		afficherTemps();
 	} catch (e) {
 		showError(e);
 	}
@@ -58,6 +65,22 @@ function afficherMethode(reco) {
 			${esc(c.title)} <span class="badge text-bg-${TYPE_COLORS[c.type]}">${TYPE_LABELS[c.type]}</span>
 			<div class="small text-secondary">${c.year ?? "année inconnue"} · ${esc(c.genres.join(", "))}</div>
 		</li>`).join("") + `</ol>`;
+}
+
+function afficherTemps() {
+	document.getElementById("dashboard").innerHTML = METHODES.map(m => {
+		const t = temps[m];
+		const moyenne = t.reduce((a, b) => a + b, 0) / t.length;
+		return `
+		<tr>
+			<td>${m}</td>
+			<td>${t[t.length - 1]}</td>
+			<td>${Math.min(...t)}</td>
+			<td>${Math.max(...t)}</td>
+			<td>${moyenne.toFixed(3)}</td>
+			<td>${t.length}</td>
+		</tr>`;
+	}).join("");
 }
 
 document.getElementById("comparer").addEventListener("click", () => {
