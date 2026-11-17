@@ -10,6 +10,9 @@ class RecoService:
 	"""
 
 	METHODS = ("contenu", "embeddings")
+	POIDS_GENRES = 0.6
+	POIDS_TYPE = 0.2
+	POIDS_ANNEE = 0.2
 
 	def __init__(self, db_path=None, db_uri=None):
 		if db_uri is None and db_path is None:
@@ -30,9 +33,44 @@ class RecoService:
 		time_ms = round((time.perf_counter() - start) * 1000, 3)
 		return results, time_ms
 
-	def recoContenu(self, content_id, n):
-		"""approche 1 : filtrage basé sur le contenu (genres, type, année...)"""
-		return []  # à implémenter
+	def _scoreSimilarite(self, cible, genres_cible, candidat) -> float:
+		genres_cand = {g.name for g in candidat.genres}
+		union = genres_cible | genres_cand
+		score_genres = len(genres_cible & genres_cand) / len(union) if union else 0
+		score_type = 1 if candidat.type == cible.type else 0
+
+		if cible.year is not None and candidat.year is not None:
+			score_annee = max(0, 1 - abs(cible.year - candidat.year) / 20)
+		else:
+			score_annee = 0
+
+		return (
+			self.POIDS_GENRES * score_genres
+			+ self.POIDS_TYPE * score_type
+			+ self.POIDS_ANNEE * score_annee
+		)
+
+	def recoContenu(self, content_id: int, n: int = 10) -> list:
+		"""filtrage par contenu : O(N × G) pour les scores (N contenus, G genres) + O(N log N) pour le tri"""
+		if n <= 0:
+			return []
+
+		cible = self.cdao.findById(content_id)
+		if not cible:
+			return []
+		cible = cible[0]
+
+		## approche simple : on parcourt tout le catalogue. Un index inversé sur les genres éviterait ce parcours complet
+		contenus = self.cdao.findAll()
+		genres_cible = {g.name for g in cible.genres}
+		scores = []
+		for c in contenus:
+			if c.id == cible.id:
+				continue
+			scores.append((self._scoreSimilarite(cible, genres_cible, c), c))
+
+		scores.sort(key=lambda x: x[0], reverse=True)
+		return [c for _, c in scores[:n]]
 
 	def recoEmbeddings(self, content_id, n):
 		"""approche 2 : similarité cosinus entre embeddings des synopsis"""
