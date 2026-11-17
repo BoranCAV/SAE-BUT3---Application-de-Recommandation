@@ -2,13 +2,59 @@
 
 const METHODES = ["contenu", "embeddings"];
 const temps = { contenu: [], embeddings: [] };
+let tousLesContenus = [];
+let dernierIdCompare = null;
+let debounceTimer = null;
+
+function normaliser(str) {
+	return (str || "")
+		.toLowerCase()
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "");
+}
+
+function trouverMeilleurContenu(saisie) {
+	if (!saisie) return null;
+	const q = normaliser(saisie);
+
+	// 1. Correspondance exacte sur le titre
+	let match = tousLesContenus.find(c => normaliser(c.title) === q);
+	if (match) return match;
+
+	// 2. Le titre commence par la recherche
+	match = tousLesContenus.find(c => normaliser(c.title).startsWith(q));
+	if (match) return match;
+
+	// 3. Le titre contient la recherche
+	match = tousLesContenus.find(c => normaliser(c.title).includes(q));
+	if (match) return match;
+
+	return null;
+}
+
+function autoRechercherEtComparer(depuisToucheEntree = false) {
+	const saisie = document.getElementById("recherche").value.trim();
+	if (!saisie) return;
+
+	const anime = trouverMeilleurContenu(saisie);
+	if (anime) {
+		const select = document.getElementById("contenu");
+		select.value = anime.id;
+		if (dernierIdCompare !== String(anime.id)) {
+			comparer(anime.id);
+		}
+	} else if (depuisToucheEntree) {
+		showError(new Error(`Aucun animé trouvé pour "${saisie}".`));
+	}
+}
 
 async function chargerContenus() {
 	const select = document.getElementById("contenu");
 	try {
-		const contenus = await api("/catalogue/?limit=1000");
-		select.innerHTML = contenus.map(c =>
-			`<option value="${c.id}">${esc(c.title)} (${TYPE_LABELS[c.type]})</option>`).join("");
+		tousLesContenus = await api("/catalogue/?limit=1000");
+		select.innerHTML = tousLesContenus.map(c =>
+			`<option value="${c.id}">${esc(c.title)} (${TYPE_LABELS[c.type] || c.type})</option>`
+		).join("");
 
 		const id = new URLSearchParams(location.search).get("id");
 		if (id) {
@@ -22,6 +68,7 @@ async function chargerContenus() {
 }
 
 async function comparer(id) {
+	dernierIdCompare = String(id);
 	document.getElementById("erreur").innerHTML = "";
 	try {
 		const contenu = await api("/catalogue/" + id);
@@ -83,8 +130,40 @@ function afficherTemps() {
 	}).join("");
 }
 
+// Recherche automatique pendant la saisie (avec délai de 350ms pour laisser taper)
+document.getElementById("recherche").addEventListener("input", () => {
+	clearTimeout(debounceTimer);
+	const saisie = document.getElementById("recherche").value.trim();
+	if (saisie.length >= 2) {
+		debounceTimer = setTimeout(() => {
+			autoRechercherEtComparer(false);
+		}, 350);
+	}
+});
+
+// Touche Entrée dans la barre de recherche : comparaison instantanée
+document.getElementById("recherche").addEventListener("keydown", (e) => {
+	if (e.key === "Enter") {
+		e.preventDefault();
+		clearTimeout(debounceTimer);
+		autoRechercherEtComparer(true);
+	}
+});
+
+// Changement manuel dans la liste déroulante : comparaison automatique
+document.getElementById("contenu").addEventListener("change", () => {
+	const id = document.getElementById("contenu").value;
+	if (id) {
+		comparer(id);
+	}
+});
+
+// Clic sur le bouton Comparer
 document.getElementById("comparer").addEventListener("click", () => {
-	comparer(document.getElementById("contenu").value);
+	const id = document.getElementById("contenu").value;
+	if (id) {
+		comparer(id);
+	}
 });
 
 chargerContenus();
