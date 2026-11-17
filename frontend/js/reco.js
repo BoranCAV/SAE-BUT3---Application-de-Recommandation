@@ -107,11 +107,18 @@ function afficherMethode(reco) {
 		zone.innerHTML = `<div class="alert alert-info mb-0">Pas encore de résultats pour cette méthode</div>`;
 		return;
 	}
-	zone.innerHTML = `<ol class="list-group list-group-numbered list-group-flush">` + reco.results.map(c => `
+	zone.innerHTML = `<ol class="list-group list-group-numbered list-group-flush">` + reco.results.map(c => {
+		const explication = c.shared_genres && c.shared_genres.length > 0 
+			? `<div class="small text-success mt-1"><em>Justification :</em> Genres en commun (${c.shared_genres.join(', ')})</div>` 
+			: '';
+			
+		return `
 		<li class="list-group-item">
 			${esc(c.title)} <span class="badge text-bg-${TYPE_COLORS[c.type]}">${TYPE_LABELS[c.type]}</span>
 			<div class="small text-secondary">${c.year ?? "année inconnue"} · ${esc(c.genres.join(", "))}</div>
-		</li>`).join("") + `</ol>`;
+			${explication}
+		</li>`;
+	}).join("") + `</ol>`;
 }
 
 function afficherTemps() {
