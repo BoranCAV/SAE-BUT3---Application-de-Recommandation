@@ -11,9 +11,11 @@ def create_app():
 	app.json.ensure_ascii = False  # garde les accents lisibles dans le JSON
 
 	from app.blueprints import index_bp, catalogue_bp, reco_bp
+	from app.blueprints.reco.benchmark import benchmark_bp
 	app.register_blueprint(index_bp, url_prefix='/api')
 	app.register_blueprint(catalogue_bp, url_prefix='/api/catalogue')
 	app.register_blueprint(reco_bp, url_prefix='/api/reco')
+	app.register_blueprint(benchmark_bp, url_prefix='/api/benchmark')
 
 	@app.after_request
 	def autoriser_front(response):
