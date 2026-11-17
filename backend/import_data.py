@@ -9,6 +9,11 @@ from app.models import Base, Genre, Content, get_engine
 ANILIST_URL = "https://graphql.anilist.co"
 NB_PAGES_ANILIST = 6  # 50 animés par page
 
+TMDB_URL = "https://api.themoviedb.org/3"
+TMDB_IMG = "https://image.tmdb.org/t/p/w500"
+NB_PAGES_TMDB = 15  # 20 résultats par page
+GENRE_ANIMATION = 16
+
 ANILIST_QUERY = """
 query ($page: Int) {
 	Page(page: $page, perPage: 50) {
@@ -65,6 +70,45 @@ def fetch_animes():
 	return animes
 
 
+def fetch_tmdb(kind, ctype, api_key):
+	"""films (kind='movie') ou séries (kind='tv') les mieux notés de tmdb"""
+	print(f"[*] import des {ctype}s depuis TMDB...")
+	params = {"api_key": api_key, "language": "fr-FR"}
+	try:
+		r = requests.get(f"{TMDB_URL}/genre/{kind}/list", params=params, timeout=15)
+		r.raise_for_status()
+	except requests.RequestException as e:
+		print(f"[!] TMDB injoignable ({e}), {ctype}s ignorés")
+		return []
+	genre_names = {g["id"]: g["name"] for g in r.json()["genres"]}
+
+	contents = []
+	for page in range(1, NB_PAGES_TMDB + 1):
+		try:
+			r = requests.get(f"{TMDB_URL}/{kind}/top_rated", params={**params, "page": page}, timeout=15)
+			r.raise_for_status()
+		except requests.RequestException as e:
+			print(f"[!] TMDB injoignable ({e}), on garde ce qu'on a")
+			break
+
+		for c in r.json()["results"]:
+			## les animés japonais viennent déjà d'anilist, on évite les doublons
+			if c["original_language"] == "ja" and GENRE_ANIMATION in c["genre_ids"]:
+				continue
+			date = c.get("release_date") or c.get("first_air_date") or ""
+			year = int(date[:4]) if date else None
+			cover = TMDB_IMG + c["poster_path"] if c.get("poster_path") else None
+			genres = []
+			for gid in c["genre_ids"]:
+				if gid in genre_names:
+					# côté séries tmdb regroupe des genres : "Action & Adventure"
+					genres += genre_names[gid].split(" & ")
+			contents.append((c.get("title") or c.get("name"), ctype, year, c["overview"] or None, c["vote_average"], cover, genres))
+
+	print(f"[+] {len(contents)} {ctype}s récupérés")
+	return contents
+
+
 def save_contents(contents, db_path=None):
 	"""vide la base puis enregistre les contenus et leurs genres"""
 	if db_path is None:
@@ -101,6 +145,14 @@ def save_contents(contents, db_path=None):
 
 def import_data(db_path=None):
 	contents = fetch_animes()
+
+	api_key = os.environ.get("TMDB_API_KEY")
+	if api_key:
+		contents += fetch_tmdb("movie", "film", api_key)
+		contents += fetch_tmdb("tv", "serie", api_key)
+	else:
+		print("[!] pas de variable TMDB_API_KEY, films et séries ignorés")
+
 	if not contents:
 		print("[!] rien récupéré, la base n'est pas modifiée")
 		return
