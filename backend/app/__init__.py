@@ -25,7 +25,7 @@ def create_app():
 		response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
 		return response
 
-	# les erreurs aussi en JSON, sinon le front reçoit une page HTML
+	# les erreurs aussi en JSON, sinon le front reçoit une page HTML 
 	@app.errorhandler(400)
 	@app.errorhandler(404)
 	def erreur_json(e):
