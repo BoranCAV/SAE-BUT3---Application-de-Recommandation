@@ -18,6 +18,20 @@ python -m pip install -r requirements.txt
 python prepa_db.py
 ```
 
+## importer les vraies données
+
+remplace le jeu d'essai par ~300 animés (AniList) + ~300 films et ~300 séries (TMDB)
+
+une clé TMDB est nécessaire pour les films et séries : créer un compte gratuit sur themoviedb.org, puis Paramètres > API
+```bash
+set TMDB_API_KEY=ta_cle          # Windows (cmd)  |  PowerShell : $env:TMDB_API_KEY="ta_cle"  |  Linux/Mac : export TMDB_API_KEY=ta_cle
+python import_data.py
+```
+sans clé, seuls les animés sont importés. Ne jamais mettre la clé dans le code.
+
+sources : [AniList](https://anilist.co) pour les animés, et TMDB pour les films et séries.
+This product uses the TMDB API but is not endorsed or certified by TMDB.
+
 ## lancer l'API
 
 ```bash
