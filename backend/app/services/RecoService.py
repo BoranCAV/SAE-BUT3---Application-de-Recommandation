@@ -67,10 +67,26 @@ class RecoService:
 		for c in contenus:
 			if c.id == cible.id:
 				continue
-			scores.append((self._scoreSimilarite(cible, genres_cible, c), c))
+			genres_cand = {g.name for g in c.genres}
+			communs = list(genres_cible & genres_cand)
+			
+			if not communs: 
+				continue 
+
+			# On calcule le score ET on garde les genres en commun
+			score = self._scoreSimilarite(cible, genres_cible, c)
+			scores.append((score, c, communs))
 
 		scores.sort(key=lambda x: x[0], reverse=True)
-		return [c for _, c in scores[:n]]
+		
+		# On attache l'explication à l'objet avant de le renvoyer
+		resultats = []
+		for score, c, communs in scores[:n]:
+			c.similarity = round(score, 3)
+			c.shared_genres = communs
+			resultats.append(c)
+			
+		return resultats
 
 	def recoEmbeddings(self, content_id, n):
 		"""approche 2 : similarité cosinus entre embeddings des synopsis"""
