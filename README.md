@@ -1,5 +1,7 @@
 # Recommandation comparée : animés, films et séries
 
+Dépôt : https://github.com/BoranCAV/SAE-BUT3---Application-de-Recommandation
+
 Application web **découplée** de recommandation comparée (SAÉ BUT3, IUT Villetaneuse).
 Pour un contenu choisi, deux approches de recommandation sont comparées côte à côte, avec un dashboard des temps de réponse (min, max, moyenne).
 
