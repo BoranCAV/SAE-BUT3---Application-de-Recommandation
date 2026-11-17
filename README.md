@@ -45,6 +45,16 @@ attention, le test remet le jeu d'essai dans la base : relancer `import_data.py`
 ~900 contenus : animés depuis [AniList](https://anilist.co), films et séries depuis [TMDB](https://www.themoviedb.org).
 This product uses the TMDB API but is not endorsed or certified by TMDB.
 
+## Licence
+
+[MIT](LICENSE), choisie dans la liste de l'[Open Source Initiative](https://opensource.org/licenses/MIT) :
+- licence courte et simple, facile à comprendre et à respecter
+- permissive : tout le monde peut réutiliser, modifier et redistribuer le code, à condition de garder la mention des auteurs
+- compatible avec les bibliothèques utilisées (Flask : BSD, SQLAlchemy : MIT, Requests : Apache 2.0, Bootstrap : MIT)
+- adaptée à un projet pédagogique : le code peut servir à d'autres étudiants, sans obligation de publier leurs modifications comme avec une licence GPL
+
+la licence couvre uniquement notre code : les données restent soumises aux conditions d'AniList et de TMDB.
+
 ## Équipe « Les Lions Conquérants »
 
 CAV Boran · CHOUAT Oussama · LARIBI Younes · LE MESTE Enzo · TABELLOUT Amir Khaled
