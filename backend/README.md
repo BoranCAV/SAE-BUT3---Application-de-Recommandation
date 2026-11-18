@@ -13,21 +13,22 @@ dépendances
 python -m pip install -r requirements.txt
 ```
 
-(ré)initialiser la base de données
+(ré)initialiser la base de données à partir de `data/contenus.json` (926 contenus, aucune clé ni réseau nécessaire)
 ```bash
 python prepa_db.py
 ```
 
-## importer les vraies données
+## mettre à jour les données (optionnel)
 
-remplace le jeu d'essai par ~300 animés (AniList) + ~300 films et ~300 séries (TMDB)
+les données sont figées dans `data/contenus.json`, versionné avec le code : tout le monde a le même catalogue et les mesures de temps sont comparables.
+`import_data.py` refait l'import (~300 animés AniList + ~300 films et ~300 séries TMDB), réécrit le json puis la base.
 
-une clé TMDB est nécessaire pour les films et séries : créer un compte gratuit sur themoviedb.org, puis Paramètres > API
+une clé TMDB est nécessaire : créer un compte gratuit sur themoviedb.org, puis Paramètres > API
 ```bash
 set TMDB_API_KEY=ta_cle          # Windows (cmd)  |  PowerShell : $env:TMDB_API_KEY="ta_cle"  |  Linux/Mac : export TMDB_API_KEY=ta_cle
 python import_data.py
 ```
-sans clé, seuls les animés sont importés. Ne jamais mettre la clé dans le code.
+sans clé, l'import est annulé et le json reste inchangé. Ne jamais mettre la clé dans le code.
 
 sources : [AniList](https://anilist.co) pour les animés, et TMDB pour les films et séries.
 This product uses the TMDB API but is not endorsed or certified by TMDB.

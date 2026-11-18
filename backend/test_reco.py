@@ -1,11 +1,15 @@
-from prepa_db import setup_database
+import os
+import tempfile
+from prepa_db import setup_database, JEU_ESSAI
 from app.services.ContentService import ContentService
 from app.services.RecoService import RecoService
 
-setup_database()
+# base temporaire avec le jeu d'essai : la vraie base app/reco.db n'est pas touchée
+db_path = os.path.join(tempfile.mkdtemp(), "test.db")
+setup_database(db_path, JEU_ESSAI)
 
-cs = ContentService()
-rs = RecoService()
+cs = ContentService(db_path=db_path)
+rs = RecoService(db_path=db_path)
 
 contenus = cs.getAllContents()
 aot = [c for c in contenus if c.title == "Attack on Titan"][0]
