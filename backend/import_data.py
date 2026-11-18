@@ -1,10 +1,10 @@
 import os
+import json
 import re
 import time
 import html
 import requests
-from sqlalchemy.orm import sessionmaker
-from app.models import Base, Genre, Content, get_engine
+from prepa_db import DATA_PATH, setup_database
 
 ANILIST_URL = "https://graphql.anilist.co"
 NB_PAGES_ANILIST = 6  # 50 animés par page
@@ -115,54 +115,38 @@ def fetch_tmdb(kind, ctype, api_key):
 	return contents
 
 
-def save_contents(contents, db_path=None):
-	"""vide la base puis enregistre les contenus et leurs genres"""
-	if db_path is None:
-		base_dir = os.path.dirname(os.path.abspath(__file__))
-		db_path = os.path.join(base_dir, 'app', 'reco.db')
+def save_json(contents):
+	"""enregistre les contenus dans data/contenus.json (sans doublons), versionné avec le code"""
+	data = []
+	deja_vus = set()
+	for title, ctype, year, synopsis, score, cover, genres in contents:
+		if (title, ctype) in deja_vus:
+			continue
+		deja_vus.add((title, ctype))
+		data.append({"title": title, "type": ctype, "year": year, "synopsis": synopsis, "score": score, "cover": cover, "genres": sorted(set(genres))})
 
-	engine = get_engine(f"sqlite:///{db_path}")
-	Base.metadata.drop_all(engine)
-	Base.metadata.create_all(engine)
-
-	session = sessionmaker(bind=engine)()
-	try:
-		genres_map = {}
-		deja_vus = set()
-		for title, ctype, year, synopsis, score, cover, genre_names in contents:
-			if (title, ctype) in deja_vus:
-				continue
-			deja_vus.add((title, ctype))
-
-			content = Content(title=title, type=ctype, year=year, synopsis=synopsis, score=score, cover=cover)
-			for g_name in set(genre_names):
-				if g_name not in genres_map:
-					genres_map[g_name] = Genre(name=g_name)
-				content.genres.append(genres_map[g_name])
-			session.add(content)
-		session.commit()
-		print(f"[+] {len(deja_vus)} contenus et {len(genres_map)} genres enregistrés")
-	except Exception:
-		session.rollback()
-		raise
-	finally:
-		session.close()
+	os.makedirs(os.path.dirname(DATA_PATH), exist_ok=True)
+	with open(DATA_PATH, "w", encoding="utf-8") as f:
+		json.dump(data, f, ensure_ascii=False, indent=1)
+	print(f"[+] {len(data)} contenus enregistrés dans {DATA_PATH}")
 
 
-def import_data(db_path=None):
-	contents = fetch_animes()
-
+def import_data():
+	# sans clé on perdrait les films et séries du json, on s'arrête avant
 	api_key = os.environ.get("TMDB_API_KEY")
-	if api_key:
-		contents += fetch_tmdb("movie", "film", api_key)
-		contents += fetch_tmdb("tv", "serie", api_key)
-	else:
-		print("[!] pas de variable TMDB_API_KEY, films et séries ignorés")
-
-	if not contents:
-		print("[!] rien récupéré, la base n'est pas modifiée")
+	if not api_key:
+		print("[!] pas de variable TMDB_API_KEY, import annulé (data/contenus.json inchangé)")
 		return
-	save_contents(contents, db_path)
+
+	animes = fetch_animes()
+	films = fetch_tmdb("movie", "film", api_key)
+	series = fetch_tmdb("tv", "serie", api_key)
+
+	if not animes or not films or not series:
+		print("[!] une source n'a rien renvoyé, data/contenus.json inchangé")
+		return
+	save_json(animes + films + series)
+	setup_database()
 
 
 if __name__ == '__main__':

@@ -19,8 +19,7 @@ Pour un contenu choisi, deux approches de recommandation sont comparées côte �
 cd backend
 python -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
-.venv\Scripts\python prepa_db.py          # jeu d'essai (7 contenus)
-.venv\Scripts\python import_data.py       # ou les vraies données, voir backend/README.md
+.venv\Scripts\python prepa_db.py          # crée la base depuis data/contenus.json (926 contenus)
 .venv\Scripts\python main.py
 
 # terminal 2 : le front (http://localhost:5500)
@@ -40,11 +39,11 @@ tests de la méthode contenu :
 cd backend
 .venv\Scripts\python test_reco.py
 ```
-attention, le test remet le jeu d'essai dans la base : relancer `import_data.py` après.
+le test utilise une base temporaire avec un petit jeu d'essai, la vraie base n'est pas modifiée.
 
 ## Données
 
-~900 contenus : animés depuis [AniList](https://anilist.co), films et séries depuis [TMDB](https://www.themoviedb.org).
+926 contenus versionnés dans `backend/data/contenus.json` (import du 17/11/2026) : animés depuis [AniList](https://anilist.co), films et séries depuis [TMDB](https://www.themoviedb.org).
 This product uses the TMDB API but is not endorsed or certified by TMDB.
 
 ## Licence
